@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutterrr/main.dart';
+import 'package:flutterrr/models/login.dart';
 import 'package:flutterrr/src/widget/bezierContainer.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key, this.title}) : super(key: key);
@@ -12,6 +18,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   Widget _backButton() {
     return InkWell(
       onTap: () {
@@ -48,6 +57,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
           TextField(
               obscureText: isPassword,
+              controller:
+                  isPassword ? _passwordController : _usernameController,
               decoration: InputDecoration(
                   border: InputBorder.none,
                   fillColor: Color(0xfff3f3f4),
@@ -55,6 +66,23 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     );
+  }
+
+  void displayDialog(BuildContext context, String title, String text) =>
+      showDialog(
+        context: context,
+        builder: (context) =>
+            AlertDialog(title: Text(title), content: Text(text)),
+      );
+
+  Future<Response> attemptSignUp(String username, String password) async {
+    var login = new Login();
+    login.username = username;
+    login.password = password;
+    var body = json.encode(login);
+    var url = "${SERVER_IP}/login";
+    var res = await http.post(url, body: body);
+    return res;
   }
 
   Widget _submitButton() {
@@ -75,9 +103,41 @@ class _LoginPageState extends State<LoginPage> {
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [Color(0xfffbb448), Color(0xfff7892b)])),
-      child: Text(
-        'Login',
-        style: TextStyle(fontSize: 20, color: Colors.white),
+      child: FlatButton(
+        onPressed: () async {
+          print(_passwordController.text);
+          print(_usernameController.text);
+
+          var username = _usernameController.text.trim();
+          var password = _passwordController.text.trim();
+
+          if (username.length < 4)
+            displayDialog(context, "Invalid Username",
+                "The username should be at least 4 characters long");
+          else if (password.length < 4)
+            displayDialog(context, "Invalid Password",
+                "The password should be at least 4 characters long");
+          else {
+            var res = await attemptSignUp(username, password);
+            print(res.headers['authorization']);
+
+            if (res.statusCode == 200) {
+              storage.write(key: "jwt", value: res.headers['authorization']);
+              displayDialog(context, "Success", " Log in now.");
+            } else if (res.statusCode == 409)
+              displayDialog(context, "That username is already registered",
+                  "Please try to sign up using another username or log in if you already have an account.");
+            else if (res.statusCode == 401)
+              displayDialog(context, "Error", "用户名或密码不正确");
+            else {
+              displayDialog(context, "Error", "An unknown error occurred.");
+            }
+          }
+        },
+        child: Text(
+          'Login',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
       ),
     );
   }
@@ -231,59 +291,57 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-            height: MediaQuery.of(context).size.height,
-            child: Stack(
+        body: SingleChildScrollView(
+            child: Container(
+      height: MediaQuery.of(context).size.height,
+      child: Stack(
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: SizedBox(),
+                ),
+                _title(),
+                SizedBox(
+                  height: 50,
+                ),
+                _emailPasswordWidget(),
+                SizedBox(
+                  height: 20,
+                ),
+                _submitButton(),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Expanded(
-                        flex: 3,
-                        child: SizedBox(),
-                      ),
-                      _title(),
-                      SizedBox(
-                        height: 50,
-                      ),
-                      _emailPasswordWidget(),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      _submitButton(),
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        alignment: Alignment.centerRight,
-                        child: Text('Forgot Password ?',
-                            style:
-                                TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                      ),
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  alignment: Alignment.centerRight,
+                  child: Text('Forgot Password ?',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                ),
 //                      _divider(),
 //                      _facebookButton(),
-                      Expanded(
-                        flex: 2,
-                        child: SizedBox(),
-                      ),
-                    ],
-                  ),
+                Expanded(
+                  flex: 2,
+                  child: SizedBox(),
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: _createAccountLabel(),
-                ),
-//                Positioned(top: 40, left: 0, child: _backButton()),
-                Positioned(
-                    top: -MediaQuery.of(context).size.height * .15,
-                    right: -MediaQuery.of(context).size.width * .4,
-                    child: BezierContainer())
               ],
             ),
-          )
-        )
-      );
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: _createAccountLabel(),
+          ),
+//                Positioned(top: 40, left: 0, child: _backButton()),
+          Positioned(
+              top: -MediaQuery.of(context).size.height * .15,
+              right: -MediaQuery.of(context).size.width * .4,
+              child: BezierContainer())
+        ],
+      ),
+    )));
   }
 }

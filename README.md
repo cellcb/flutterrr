@@ -22,3 +22,6 @@ PaginatedDataTable  分页表格
 
 
 https://github.com/newPersonKing/Flutter_datatableDemo
+
+
+flutter packages pub run json_model
