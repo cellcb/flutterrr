@@ -56,6 +56,10 @@ class _PhotoState extends State<Photo> {
           });
         },
       ),
+      floatingActionButton: new FloatingActionButton(
+        tooltip: 'Increment',
+        child: new Icon(Icons.photo_camera),
+      ),
     );
   }
 }
