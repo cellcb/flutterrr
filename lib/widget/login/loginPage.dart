@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutterrr/main.dart';
 import 'package:flutterrr/models/login.dart';
-import 'package:flutterrr/src/widget/bezierContainer.dart';
+import 'package:flutterrr/widget/bezierContainer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -107,32 +107,33 @@ class _LoginPageState extends State<LoginPage> {
         onPressed: () async {
           print(_passwordController.text);
           print(_usernameController.text);
-
-          var username = _usernameController.text.trim();
-          var password = _passwordController.text.trim();
-
-          if (username.length < 4)
-            displayDialog(context, "Invalid Username",
-                "The username should be at least 4 characters long");
-          else if (password.length < 4)
-            displayDialog(context, "Invalid Password",
-                "The password should be at least 4 characters long");
-          else {
-            var res = await attemptSignUp(username, password);
-            print(res.headers['authorization']);
-
-            if (res.statusCode == 200) {
-              storage.write(key: "jwt", value: res.headers['authorization']);
-              displayDialog(context, "Success", " Log in now.");
-            } else if (res.statusCode == 409)
-              displayDialog(context, "That username is already registered",
-                  "Please try to sign up using another username or log in if you already have an account.");
-            else if (res.statusCode == 401)
-              displayDialog(context, "Error", "用户名或密码不正确");
-            else {
-              displayDialog(context, "Error", "An unknown error occurred.");
-            }
-          }
+          Navigator.of(context).pushNamed("gallery");
+//          var username = _usernameController.text.trim();
+//          var password = _passwordController.text.trim();
+//       amznprme gebamznbe /iseeatle us
+//          if (username.length < 4)
+//            displayDialog(context, "Invalid Username",
+//                "The username should be at least 4 characters long");
+//          else if (password.length < 4)
+//            displayDialog(context, "Invalid Password",
+//                "The password should be at least 4 characters long");
+//          else {
+//            var res = await attemptSignUp(username, password);
+//            print(res.headers['authorization']);
+//
+//            if (res.statusCode == 200) {
+//              storage.write(key: "jwt", value: res.headers['authorization']);
+//              Navigator.of(context).pushNamed("gallery");
+////              displayDialog(context, "Success", " Log in now.");
+//            } else if (res.statusCode == 409)
+//              displayDialog(context, "That username is already registered",
+//                  "Please try to sign up using another username or log in if you already have an account.");
+//            else if (res.statusCode == 401)
+//              displayDialog(context, "Error", "用户名或密码不正确");
+//            else {
+//              displayDialog(context, "Error", "An unknown error occurred.");
+//            }
+//          }
         },
         child: Text(
           'Login',
